@@ -1,0 +1,17 @@
+
+> expiry-iq@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3000
+   - Network:      http://10.107.9.207:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 3.2s
+ ○ Compiling / ...
+ ✓ Compiled / in 1242ms (541 modules)
+ GET / 307 in 2152ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 822ms (553 modules)
+ GET /login 200 in 1207ms
