@@ -728,7 +728,7 @@ tr.safe {
   background:
     radial-gradient(circle at top, #18181b 0%, #09090b 45%, #050505 100%);
 
-
+}
 /* =========================
    SIDEBAR
 ========================= */
@@ -1296,7 +1296,6 @@ table {
   .table-actions {
     flex-wrap: wrap;
   }
-}
 
 
 
@@ -1306,4 +1305,4 @@ table {
 
 
 
-}
+
