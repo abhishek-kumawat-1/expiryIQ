@@ -728,12 +728,8 @@ function EditableTable({
         <tbody>
           {rows.map((row, index) => (
             <tr key={index}>
-              <td>
-                <input value={row.medicineName} onChange={(event) => onChange(index, "medicineName", event.target.value)} />
-              </td>
-              <td>
-                <input value={row.batchNo} onChange={(event) => onChange(index, "batchNo", event.target.value)} />
-              </td>
+              <td> <input className="medicine-input" value={row.medicineName} onChange={(event) => onChange( index, "medicineName", event.target.value ) } /> </td>
+              <td> <input className="batch-input" value={row.batchNo} onChange={(event) => onChange( index, "batchNo", event.target.value ) } /> </td>
               <td>
                 <input
                   min={1}
@@ -792,10 +788,10 @@ function SavedTable({
             rows.map((row) => (
               <tr className={row.status} key={row.id}>
                 <td>
-                  <input value={row.medicineName} onChange={(event) => onChange({ ...row, medicineName: event.target.value })} />
+                  <input className="medicine-input" value={row.medicineName} onChange={(event) => onChange({ ...row, medicineName: event.target.value }) } />
                 </td>
                 <td>
-                  <input value={row.batchNo} onChange={(event) => onChange({ ...row, batchNo: event.target.value })} />
+                  <input className="batch-input" value={row.batchNo} onChange={(event) => onChange({ ...row, batchNo: event.target.value }) } />
                 </td>
                 <td>
                   <input

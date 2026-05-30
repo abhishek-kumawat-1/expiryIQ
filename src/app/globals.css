@@ -1149,6 +1149,40 @@ tr.safe {
   }
 }
 
+/* =========================
+   TABLE INPUT WIDTHS
+========================= */
+
+.medicine-input {
+  min-width: 260px !important;
+
+  width: 100%;
+}
+
+.batch-input {
+  min-width: 180px !important;
+
+  width: 100%;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  min-width: 1500px;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 }
