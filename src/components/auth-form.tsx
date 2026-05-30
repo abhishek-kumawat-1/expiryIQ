@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+
 type Mode = "login" | "register";
 
 export function AuthForm() {

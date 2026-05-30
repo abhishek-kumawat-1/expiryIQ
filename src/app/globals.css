@@ -1299,6 +1299,18 @@ table {
 
 
 
+/* =========================
+   LANDING LOGO
+========================= */
+
+.landing-logo {
+  width: 240px;
+
+  height: auto;
+
+  object-fit: contain;
+}
+
 
 
 
