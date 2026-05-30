@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { getMedicineStatus, normalizeExpiryDate, type MedicineStatus } from "@/lib/dates";
 import { tr } from "zod/v4/locales";
+import Image from "next/image";
 
 type User = {
   id: string;
@@ -364,6 +365,7 @@ return (
             Dashboard
           </button>
 
+
           <button className="nav-item">
             Medicines
           </button>
@@ -405,13 +407,11 @@ return (
     </button>
 
     <div>
-      <p className="eyebrow">
+      {/* <p className="eyebrow">
         Dashboard
-      </p>
+      </p> */}
 
-      <h1>
-        Medicine expiry tracker
-      </h1>
+      <div className="dashboard-title"> <Image src="/logo.png" alt="ExpiryIQ Logo" width={42} height={42} className="dashboard-logo" /> <h1>ExpiryIQ</h1> </div>
 
       <p className="muted">
         Upload medicine bills & invoices,

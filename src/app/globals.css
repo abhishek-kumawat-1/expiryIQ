@@ -1312,6 +1312,29 @@ table {
 }
 
 
+/* =========================
+   DASHBOARD TITLE
+========================= */
+
+.dashboard-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+}
+
+.dashboard-logo {
+  width: 100px;
+
+  height: 100px;
+
+  object-fit: contain;
+
+  border-radius: 12px;
+}
+
+
 
 
 
