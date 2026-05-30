@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       {
         role: "system",
         content:
-          "Extract medicine inventory rows from invoices, medicine strips, cartons, or labels. Return only actual product rows. Expiry may appear as Exp, EXP, expiry, or month/year. Do not guess unreadable rows."
+          "Extract medicine inventory rows from invoices, cartons, or labels. Return only actual product rows. Expiry may appear as Exp, EXP, expiry, or month/year. Do not guess unreadable rows."
       },
       {
         role: "user",

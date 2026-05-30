@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { getMedicineStatus, normalizeExpiryDate, type MedicineStatus } from "@/lib/dates";
+import { tr } from "zod/v4/locales";
 
 type User = {
   id: string;
@@ -45,9 +46,7 @@ export function Dashboard({ user, initialMedicines }: Props) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [extracting, setExtracting] = useState(false);
-  const [cameraActive, setCameraActive] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const visibleMedicines = useMemo(() => {
     return medicines
@@ -61,56 +60,88 @@ export function Dashboard({ user, initialMedicines }: Props) {
     window.location.href = "/login";
   }
 
-  async function extractFromFile(file: File) {
-    setError("");
-    setMessage("");
-    setExtracting(true);
+
+async function extractFromFile(file: File) {
+  setError("");
+  setMessage("");
+
+  if (file.size > 10 * 1024 * 1024) {
+    setError("Image too large.");
+    return;
+  }
+
+  setExtracting(true);
+
+  try {
     const formData = new FormData();
+
     formData.append("image", file);
-    const response = await fetch("/api/extract", { method: "POST", body: formData });
-    setExtracting(false);
+
+    const response = await fetch("/api/extract", {
+      method: "POST",
+      body: formData,
+    });
 
     const data = await response.json();
+
     if (!response.ok) {
       setError(data.error || "Extraction failed.");
       return;
     }
 
-    setDraftRows(data.rows.length ? data.rows : [emptyRow()]);
-    setMessage(`Fetched ${data.rows.length} row(s). Review and edit before saving.`);
-  }
+    setDraftRows(
+      data.rows.length
+        ? data.rows
+        : [emptyRow()]
+    );
 
-  async function startCamera() {
-    setError("");
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    streamRef.current = stream;
-    setCameraActive(true);
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
-    }
-  }
+    setMessage(
+      `Fetched ${data.rows.length} row(s). Review and edit before saving.`
+    );
+  } catch (error) {
+    console.error(error);
 
-  function stopCamera() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    setCameraActive(false);
+    setError(
+      "Something went wrong while extracting the image."
+    );
+  } finally {
+    setExtracting(false);
   }
+}
 
-  async function capturePhoto() {
-    const video = videoRef.current;
-    if (!video) {
-      return;
-    }
 
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext("2d")?.drawImage(video, 0, 0);
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
-    if (blob) {
-      await extractFromFile(new File([blob], "camera-capture.jpg", { type: "image/jpeg" }));
-    }
-  }
+
+  // async function startCamera() {
+  //   setError("");
+  //   const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+  //   streamRef.current = stream;
+  //   setCameraActive(true);
+  //   if (videoRef.current) {
+  //     videoRef.current.srcObject = stream;
+  //   }
+  // }
+
+  // function stopCamera() {
+  //   streamRef.current?.getTracks().forEach((track) => track.stop());
+  //   streamRef.current = null;
+  //   setCameraActive(false);
+  // }
+
+  // async function capturePhoto() {
+  //   const video = videoRef.current;
+  //   if (!video) {
+  //     return;
+  //   }
+
+  //   const canvas = document.createElement("canvas");
+  //   canvas.width = video.videoWidth;
+  //   canvas.height = video.videoHeight;
+  //   canvas.getContext("2d")?.drawImage(video, 0, 0);
+  //   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+  //   if (blob) {
+  //     await extractFromFile(new File([blob], "camera-capture.jpg", { type: "image/jpeg" }));
+  //   }
+  // }
 
   function updateDraft(index: number, field: keyof MedicineRow, value: string) {
     setDraftRows((rows) =>
@@ -202,96 +233,473 @@ export function Dashboard({ user, initialMedicines }: Props) {
     setMedicines((rows) => rows.filter((row) => row.id !== id));
   }
 
-  return (
-    <main className="app-shell">
-      <header className="topbar">
+  // return (
+  //   <main className="app-shell">
+  //     <header className="topbar">
+  //       <div>
+  //         <p className="eyebrow">ExpiryIQ</p>
+  //         <h1>Medicine expiry tracker</h1>
+  //         <p className="muted">Signed in as {user.name} ({user.email})</p>
+  //       </div>
+  //       <button className="secondary" onClick={logout}>
+  //         Logout
+  //       </button>
+  //     </header>
+
+  //     <div className="grid two-col">
+  //       <section className="panel grid">
+  //         <div>
+  //           <h2>Capture or upload</h2>
+  //           <p className="muted">Fetched rows stay editable until you save them.</p>
+  //         </div>
+  //         <input
+  //           accept="image/*"
+  //           type="file"
+  //           onChange={(event) => {
+  //             const file = event.target.files?.[0];
+  //             if (file) {
+  //               void extractFromFile(file);
+  //             }
+  //           }}
+  //         />
+  //         <video className="camera" ref={videoRef} autoPlay muted playsInline />
+  //         <div className="actions">
+  //           <button className="secondary" onClick={cameraActive ? stopCamera : startCamera} type="button">
+  //             {cameraActive ? "Stop camera" : "Start camera"}
+  //           </button>
+  //           <button onClick={capturePhoto} disabled={!cameraActive || extracting} type="button">
+  //             {extracting ? "Extracting..." : "Capture"}
+  //           </button>
+  //         </div>
+  //       </section>
+
+  //       <section className="panel grid">
+  //         <div className="toolbar">
+  //           <div>
+  //             <h2>Review before saving</h2>
+  //             <p className="muted">Edit fetched entries or insert manual rows here.</p>
+  //           </div>
+  //           <button className="secondary" onClick={() => setDraftRows((rows) => [...rows, emptyRow()])} type="button">
+  //             Add row
+  //           </button>
+  //         </div>
+  //         <EditableTable
+  //           rows={draftRows}
+  //           onChange={updateDraft}
+  //           onDelete={(index) => setDraftRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}
+  //         />
+  //         <div className="actions">
+  //           <button onClick={saveDraftRows} type="button">
+  //             Save reviewed rows
+  //           </button>
+  //           <button className="secondary" onClick={() => setDraftRows([emptyRow()])} type="button">
+  //             Clear draft
+  //           </button>
+  //         </div>
+  //         {message ? <p className="notice">{message}</p> : null}
+  //         {error ? <p className="notice error">{error}</p> : null}
+  //       </section>
+  //     </div>
+
+  //     <section className="panel grid" style={{ marginTop: 16 }}>
+  //       <div className="toolbar">
+  //         <div>
+  //           <h2>Saved medicines</h2>
+  //           <p className="muted">Near-expiry and expired medicines are highlighted red.</p>
+  //         </div>
+  //         <select value={filter} onChange={(event) => setFilter(event.target.value as typeof filter)}>
+  //           <option value="all">All</option>
+  //           <option value="safe">Safe</option>
+  //           <option value="near_expiry">Near expiry</option>
+  //           <option value="expired">Expired</option>
+  //         </select>
+  //       </div>
+  //       <SavedTable
+  //         rows={visibleMedicines}
+  //         onChange={(changed) => setMedicines((rows) => rows.map((row) => (row.id === changed.id ? changed : row)))}
+  //         onSave={updateSaved}
+  //         onDelete={deleteSaved}
+  //       />
+  //     </section>
+  //   </main>
+  // );
+
+return (
+  <div className={`dashboard-layout ${ sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed" }`}>
+    <aside className={`sidebar ${ sidebarOpen ? "open" : "closed" }`}>
+      <div className="sidebar-top">
         <div>
           <p className="eyebrow">ExpiryIQ</p>
-          <h1>Medicine expiry tracker</h1>
-          <p className="muted">Signed in as {user.name} ({user.email})</p>
-        </div>
-        <button className="secondary" onClick={logout}>
-          Logout
-        </button>
-      </header>
 
-      <div className="grid two-col">
+          <h2 className="sidebar-title">
+            Medicine Tracker
+          </h2>
+
+          {/* <p
+            className="muted"
+            style={{ marginTop: 12 }}
+          >
+            AI-powered medicine expiry management dashboard.
+          </p> */}
+        </div>
+
+        <div className="user-card">
+          <div className="avatar">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+
+          <div>
+            <p className="user-name">
+              {user.name}
+            </p>
+
+            {/* <p className="muted">
+              {user.email}
+            </p> */}
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          <button className="nav-item active">
+            Dashboard
+          </button>
+
+          <button className="nav-item">
+            Medicines
+          </button>
+
+          <button className="nav-item">
+            Scanner
+          </button>
+
+          <button className="nav-item">
+            Analytics
+          </button>
+
+          <button className="nav-item">
+            Settings
+          </button>
+        </nav>
+      </div>
+
+      <button
+        className="secondary logout-btn"
+        onClick={logout}
+      >
+        Logout
+      </button>
+    </aside>
+
+    <main className="dashboard-main">
+     
+<header className="dashboard-header">
+  <div className="dashboard-header-top">
+    <button
+      className="sidebar-toggle"
+      onClick={() =>
+        setSidebarOpen((open) => !open)
+      }
+      type="button"
+    >
+      ☰
+    </button>
+
+    <div>
+      <p className="eyebrow">
+        Dashboard
+      </p>
+
+      <h1>
+        Medicine expiry tracker
+      </h1>
+
+      <p className="muted">
+        Upload medicine bills & invoices,
+        extract expiry information and
+        manage inventory.
+      </p>
+    </div>
+  </div>
+</header>
+
+
+      <div
+        className="grid two-col"
+        style={{
+          alignItems: "stretch",
+        }}
+      >
         <section className="panel grid">
           <div>
-            <h2>Capture or upload</h2>
-            <p className="muted">Fetched rows stay editable until you save them.</p>
-          </div>
-          <input
+            <h2>
+              Capture or upload
+            </h2>          </div>
+
+          {/* <input
             accept="image/*"
+            capture="environment"
             type="file"
+            hidden
             onChange={(event) => {
               const file = event.target.files?.[0];
+
               if (file) {
                 void extractFromFile(file);
               }
             }}
-          />
-          <video className="camera" ref={videoRef} autoPlay muted playsInline />
-          <div className="actions">
-            <button className="secondary" onClick={cameraActive ? stopCamera : startCamera} type="button">
-              {cameraActive ? "Stop camera" : "Start camera"}
+          /> */}
+
+
+<div className="upload-wrapper">
+  {extracting ? (
+    <div className="extracting-overlay">
+      <div className="spinner" />
+
+      <h3>Extracting medicine details...</h3>
+
+      <p className="muted">
+        AI is analyzing the uploaded image.
+      </p>
+    </div>
+  ) : null}
+
+
+<div className="upload-actions">
+  {/* Upload From Device */}
+  <label className="upload-option">
+    <input
+      accept="image/*"
+      type="file"
+      hidden
+      onChange={(event) => {
+        const file = event.target.files?.[0];
+
+        if (file) {
+          void extractFromFile(file);
+        }
+      }}
+    />
+
+    <div className="upload-option-content">
+      <div className="upload-icon">
+        📁
+      </div>
+
+      <h3>Upload Image</h3>
+
+      <p className="muted">
+        Choose image from device
+      </p>
+    </div>
+  </label>
+
+  {/* Capture Using Camera */}
+  <label className="upload-option">
+    <input
+      accept="image/*"
+      capture="environment"
+      type="file"
+      hidden
+      onChange={(event) => {
+        const file = event.target.files?.[0];
+
+        if (file) {
+          void extractFromFile(file);
+        }
+      }}
+    />
+
+    <div className="upload-option-content">
+      <div className="upload-icon">
+        📸
+      </div>
+
+      <h3>Capture Photo</h3>
+
+      <p className="muted">
+        Open camera directly
+      </p>
+    </div>
+  </label>
+            </div>
+            </div>
+
+
+
+
+          {/* <video
+            className="camera"
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+          /> */}
+
+          {/* <div className="actions">
+            <button
+              className="secondary"
+              onClick={
+                cameraActive
+                  ? stopCamera
+                  : startCamera
+              }
+              type="button"
+            >
+              {cameraActive
+                ? "Stop camera"
+                : "Start camera"}
             </button>
-            <button onClick={capturePhoto} disabled={!cameraActive || extracting} type="button">
-              {extracting ? "Extracting..." : "Capture"}
+
+            <button
+              onClick={capturePhoto}
+              disabled={
+                !cameraActive || extracting
+              }
+              type="button"
+            >
+              {extracting
+                ? "Extracting..."
+                : "Capture"}
             </button>
-          </div>
+          </div> */}
         </section>
 
         <section className="panel grid">
           <div className="toolbar">
             <div>
-              <h2>Review before saving</h2>
-              <p className="muted">Edit fetched entries or insert manual rows here.</p>
+              <h2>
+                Review before saving
+              </h2>
+
+              <p className="muted">
+                Review AI extracted rows or add manual medicine entries.
+              </p>
             </div>
-            <button className="secondary" onClick={() => setDraftRows((rows) => [...rows, emptyRow()])} type="button">
+
+            <button
+              className="secondary"
+              onClick={() =>
+                setDraftRows((rows) => [
+                  ...rows,
+                  emptyRow(),
+                ])
+              }
+              type="button"
+            >
               Add row
             </button>
           </div>
+
           <EditableTable
             rows={draftRows}
             onChange={updateDraft}
-            onDelete={(index) => setDraftRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}
+            onDelete={(index) =>
+              setDraftRows((rows) =>
+                rows.filter(
+                  (_, rowIndex) =>
+                    rowIndex !== index
+                )
+              )
+            }
           />
+
           <div className="actions">
-            <button onClick={saveDraftRows} type="button">
+            <button
+              onClick={saveDraftRows}
+              type="button"
+            >
               Save reviewed rows
             </button>
-            <button className="secondary" onClick={() => setDraftRows([emptyRow()])} type="button">
+
+            <button
+              className="secondary"
+              onClick={() =>
+                setDraftRows([emptyRow()])
+              }
+              type="button"
+            >
               Clear draft
             </button>
           </div>
-          {message ? <p className="notice">{message}</p> : null}
-          {error ? <p className="notice error">{error}</p> : null}
+
+          {message ? (
+            <p className="notice">
+              {message}
+            </p>
+          ) : null}
+
+          {error ? (
+            <p className="notice error">
+              {error}
+            </p>
+          ) : null}
         </section>
       </div>
 
-      <section className="panel grid" style={{ marginTop: 16 }}>
+      <section
+        className="panel grid"
+        style={{
+          marginTop: 24,
+        }}
+      >
         <div className="toolbar">
           <div>
-            <h2>Saved medicines</h2>
-            <p className="muted">Near-expiry and expired medicines are highlighted red.</p>
+            <h2>
+              Saved medicines
+            </h2>
+
+            <p className="muted">
+              Track safe, near-expiry and expired medicines.
+            </p>
           </div>
-          <select value={filter} onChange={(event) => setFilter(event.target.value as typeof filter)}>
-            <option value="all">All</option>
-            <option value="safe">Safe</option>
-            <option value="near_expiry">Near expiry</option>
-            <option value="expired">Expired</option>
+
+          <select
+            value={filter}
+            onChange={(event) =>
+              setFilter(
+                event.target.value as typeof filter
+              )
+            }
+          >
+            <option value="all">
+              All
+            </option>
+
+            <option value="safe">
+              Safe
+            </option>
+
+            <option value="near_expiry">
+              Near expiry
+            </option>
+
+            <option value="expired">
+              Expired
+            </option>
           </select>
         </div>
+
         <SavedTable
           rows={visibleMedicines}
-          onChange={(changed) => setMedicines((rows) => rows.map((row) => (row.id === changed.id ? changed : row)))}
+          onChange={(changed) =>
+            setMedicines((rows) =>
+              rows.map((row) =>
+                row.id === changed.id
+                  ? changed
+                  : row
+              )
+            )
+          }
           onSave={updateSaved}
           onDelete={deleteSaved}
         />
       </section>
     </main>
-  );
+  </div>
+);
+
+
+
 }
 
 function EditableTable({
@@ -405,11 +813,11 @@ function SavedTable({
                 </td>
                 <td>{row.source}</td>
                 <td>
-                  <div className="actions">
-                    <button onClick={() => onSave(row)} type="button">
+                  <div className="table-actions">
+                    <button className="compact-btn" onClick={() => onSave(row)} type="button">
                       Save
                     </button>
-                    <button className="danger" onClick={() => onDelete(row.id)} type="button">
+                    <button className="compact-btn danger" onClick={() => onDelete(row.id)} type="button">
                       Delete
                     </button>
                   </div>

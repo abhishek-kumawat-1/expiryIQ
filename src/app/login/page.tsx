@@ -12,9 +12,10 @@ export default async function LoginPage() {
     <main className="auth-shell">
       <section className="auth-panel">
         <div>
-          <p className="eyebrow">Local POC</p>
+          <p className="eyebrow">Full Proof Solution for your inventory</p>
           <h1>ExpiryIQ</h1>
-          <p className="muted">Track medicine expiry dates from invoice photos, then review before saving.</p>
+          <p className="muted">Track medicine expiry dates from invoice photos.</p>
+          <p className="muted">Start Tracking...</p>
         </div>
         <AuthForm />
       </section>
