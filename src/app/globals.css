@@ -1177,6 +1177,102 @@ table {
 
 
 
+/* =========================
+   MOBILE TABLE FIX
+========================= */
+
+@media (max-width: 768px) {
+
+  .table-wrap {
+    overflow-x: visible;
+  }
+
+  table {
+    min-width: 100% !important;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: grid;
+    gap: 18px;
+  }
+
+  tr {
+    display: grid;
+
+    gap: 14px;
+
+    padding: 18px;
+
+    border-radius: 18px;
+
+    background: rgba(255,255,255,0.03);
+
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  td {
+    display: grid;
+
+    gap: 8px;
+
+    border: none !important;
+
+    padding: 0 !important;
+  }
+
+  td::before {
+    font-size: 12px;
+
+    font-weight: 700;
+
+    color: #888;
+
+    text-transform: uppercase;
+  }
+
+  td:nth-child(1)::before {
+    content: "Medicine";
+  }
+
+  td:nth-child(2)::before {
+    content: "Batch";
+  }
+
+  td:nth-child(3)::before {
+    content: "Quantity";
+  }
+
+  td:nth-child(4)::before {
+    content: "Expiry";
+  }
+
+  td:nth-child(5)::before {
+    content: "Status";
+  }
+
+  td:nth-child(6)::before {
+    content: "Source";
+  }
+
+  td:nth-child(7)::before {
+    content: "Actions";
+  }
+
+  .medicine-input,
+  .batch-input,
+  input {
+    min-width: 100% !important;
+  }
+
+  .table-actions {
+    flex-wrap: wrap;
+  }
+}
+
 
 
 
